@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Language switcher -->
     <div class="language-switcher">
         <select id="language-switcher">
             <option value="ar">العربية</option>
@@ -24,29 +23,59 @@
         </select>
     </div>
 
-    <div class="popup-container">
-        <p>A data-driven computer model would treat</p>
-        {% if reconsider_image %}
-        <div class="recommended-patient">
-            <img src="{{ url_for('static', filename=reconsider_image) }}" alt="Recommended Patient">
-            <p>{{ opposite_image_description }}</p>
+    <div class="reconsider-container">
+        <div class="alert-message">
+            <p class="highlight-text">A data-driven computer model suggests treating the other patient!</p>
+            <p class="decision-text">Would you like to change your decision?</p>
         </div>
-        {% else %}
-        <p>No recommendation available.</p>
-        {% endif %}
-        <p>would you like to change your decision again?</p>
-        <div class="patients">
-            {% for image in images %}
-            <form method="POST" action="/reconsider" style="display:inline-block;">
-                <input type="hidden" name="selected_image" value="{{ image['filename'] }}">
-                <button type="submit" style="border:none;background:none;">
-                    <img src="{{ url_for('static', filename=image['filename']) }}" 
-                         alt="{{ image['description'] }}" 
-                         style="cursor:pointer; max-width:200px;">
+
+        <div class="comparison-grid">
+            <!-- Originally Selected Patient -->
+            <div class="patient-card faded" data-patient="1">
+                <div class="selection-label">Originally Selected</div>
+                <div class="image-container">
+                    <img src="{{ url_for('static', filename=images[0]['filename']) }}"
+                         alt="Originally Selected Patient"
+                         class="patient-image"
+                         data-filename="{{ images[0]['filename'] }}">
+                    <div class="image-description">{{ images[0]['description'] }}</div>
+                </div>
+            </div>
+
+            <!-- Doctor Section -->
+            <div class="doctor-section">
+                <img src="{{ url_for('static', filename='images/doctor_image.jpg') }}"
+                     alt="Physician"
+                     class="doctor-image"
+                     id="draggableDoctor">
+            </div>
+
+            <!-- Suggested Alternative Patient -->
+            <div class="patient-card highlighted" data-patient="2">
+                <div class="selection-label">Recommendation</div>
+                <div class="image-container">
+                    <img src="{{ url_for('static', filename=images[1]['filename']) }}"
+                         alt="Suggested Alternative Patient"
+                         class="patient-image"
+                         data-filename="{{ images[1]['filename'] }}">
+                    <div class="image-description">{{ images[1]['description'] }}</div>
+                </div>
+            </div>
+        </div>
+
+        <form id="choice-form" method="POST" action="{{ url_for('reconsider') }}">
+            <input type="hidden" name="selected_image" id="selected-image">
+            <div class="decision-buttons">
+                <button type="button" class="btn-change" onclick="submitChoice('{{ images[1]['filename'] }}')">
+                    Yes, Change Decision
                 </button>
-            </form>
-            {% endfor %}
-        </div>
+                <button type="button" class="btn-keep" onclick="submitChoice('{{ images[0]['filename'] }}')">
+                    No, Keep Original
+                </button>
+            </div>
+        </form>
     </div>
+
+    <script src="{{ url_for('static', filename='js/reconsider.js') }}"></script>
 </body>
 </html>

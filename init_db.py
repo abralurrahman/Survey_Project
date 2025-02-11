@@ -4,48 +4,49 @@ def create_database():
     """
     Create the `user_responses` table in the database if it doesn't exist.
     """
-    # Connect to the database (creates the file if it doesn't exist)
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # Create the `user_responses` table
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS user_responses (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            choice1 TEXT,                              -- Choice from Set 1
-            choice2 TEXT,                              -- Choice from Set 2
-            choice3 TEXT,                              -- Choice from Set 3
-            reconsider_choice TEXT,                   -- Reconsidered choice during popup
-            popup_decision TEXT,                      -- Tracks if the popup was shown
-            save_life_years TEXT,                     -- Procedural rating: Save life years
-            advantage_disadvantaged TEXT,             -- Procedural rating: Advantage to disadvantaged
-            benefit_future TEXT,                      -- Procedural rating: Benefit others in the future
-            first_come TEXT,                          -- Procedural rating: First-come, first-served
-            treatment_success TEXT,                   -- Procedural rating: Maximize treatment success
-            treatment_effort TEXT,                    -- Procedural rating: Minimize treatment effort
-            medication_effect TEXT,                   -- Procedural rating: Maximize medication effect
-            random_selection TEXT,                    -- Procedural rating: Random selection
-            gender TEXT,                              -- Demographic: Gender
-            age INTEGER,                              -- Demographic: Age
-            religion TEXT,                            -- Demographic: Religion
-            general_health TEXT,                      -- Group preference: General health status
-            illness TEXT,                             -- Group preference: Severe illness last year
-            children TEXT,                            -- Group preference: Children/planning children
-            ip_address TEXT,                          -- User's IP address
-            city TEXT,                                -- User's city (geo-location)
-            region TEXT,                              -- User's region (geo-location)
-            country TEXT,                             -- User's country (geo-location)
-            reconsider_opposite_image TEXT,           -- Image suggested by the system during reconsideration
-            final_decision TEXT,                      -- Final decision after reconsideration
-            choice3_initial_choice TEXT,              -- Initial choice for Set 3
-            choice3_final_choice TEXT                 -- Final choice for Set 3 after reconsideration
+            choice1 TEXT,                              -- First choice selection
+            choice2 TEXT,                              -- Second choice selection
+            choice3 TEXT,                              -- Third choice selection
+            choice1_initial TEXT,                      -- Initial selection for choice 1
+            choice2_initial TEXT,                      -- Initial selection for choice 2
+            choice3_initial TEXT,                      -- Initial selection for choice 3
+            choice1_final TEXT,                        -- Final selection after reconsideration for choice 1
+            choice2_final TEXT,                        -- Final selection after reconsideration for choice 2
+            choice3_final TEXT,                        -- Final selection after reconsideration for choice 3
+            reconsider_set INTEGER,                    -- Which set triggered reconsideration (1-3)
+            data_driven_tool_suggestion  TEXT,                        -- data_driven_tool_suggestion  suggested alternative
+            changed_decision BOOLEAN,                  -- Whether user changed their decision
+            save_life_years INTEGER,                   -- Rating: Save life years
+            advantage_disadvantaged INTEGER,           -- Rating: Advantage to disadvantaged
+            benefit_future INTEGER,                    -- Rating: Benefit others in future
+            first_come INTEGER,                        -- Rating: First-come first-served
+            treatment_success INTEGER,                 -- Rating: Treatment success likelihood
+            treatment_effort INTEGER,                  -- Rating: Treatment effort required
+            medication_effect INTEGER,                 -- Rating: Medication effectiveness
+            random_selection INTEGER,                  -- Rating: Random selection preference
+            gender TEXT,                              -- Demographics: Gender
+            age INTEGER,                              -- Demographics: Age
+            religion TEXT,                            -- Demographics: Religion
+            general_health TEXT,                      -- Health status
+            illness TEXT,                             -- Recent illness history
+            children TEXT,                            -- Children status
+            ip_address TEXT,                          -- User IP
+            city TEXT,                                -- Location: City
+            region TEXT,                              -- Location: Region
+            country TEXT,                             -- Location: Country
+            session_start TIMESTAMP,                  -- Session start time
+            session_end TIMESTAMP                     -- Session end time
         )
     ''')
 
-    # Commit changes and close the connection
     conn.commit()
     conn.close()
-
 
 def add_columns_if_not_exist():
     """
@@ -54,25 +55,30 @@ def add_columns_if_not_exist():
     conn = sqlite3.connect('database.db')
     cursor = conn.cursor()
 
-    # Retrieve the existing columns in the `user_responses` table
     cursor.execute("PRAGMA table_info(user_responses);")
-    user_responses_columns = [col[1] for col in cursor.fetchall()]
+    existing_columns = [col[1] for col in cursor.fetchall()]
 
-    # Define required columns and their SQL types
     required_columns = {
         "choice1": "TEXT",
         "choice2": "TEXT",
         "choice3": "TEXT",
-        "reconsider_choice": "TEXT",
-        "popup_decision": "TEXT",
-        "save_life_years": "TEXT",
-        "advantage_disadvantaged": "TEXT",
-        "benefit_future": "TEXT",
-        "first_come": "TEXT",
-        "treatment_success": "TEXT",
-        "treatment_effort": "TEXT",
-        "medication_effect": "TEXT",
-        "random_selection": "TEXT",
+        "choice1_initial": "TEXT",
+        "choice2_initial": "TEXT",
+        "choice3_initial": "TEXT",
+        "choice1_final": "TEXT",
+        "choice2_final": "TEXT",
+        "choice3_final": "TEXT",
+        "reconsider_set": "INTEGER",
+        "data_driven_tool_suggestion ": "TEXT",
+        "changed_decision": "BOOLEAN",
+        "save_life_years": "INTEGER",
+        "advantage_disadvantaged": "INTEGER",
+        "benefit_future": "INTEGER",
+        "first_come": "INTEGER",
+        "treatment_success": "INTEGER",
+        "treatment_effort": "INTEGER",
+        "medication_effect": "INTEGER",
+        "random_selection": "INTEGER",
         "gender": "TEXT",
         "age": "INTEGER",
         "religion": "TEXT",
@@ -83,25 +89,20 @@ def add_columns_if_not_exist():
         "city": "TEXT",
         "region": "TEXT",
         "country": "TEXT",
-        "reconsider_opposite_image": "TEXT",
-        "final_decision": "TEXT",
-        "choice3_initial_choice": "TEXT",
-        "choice3_final_choice": "TEXT"
+        "session_start": "TIMESTAMP",
+        "session_end": "TIMESTAMP"
     }
 
-    # Add missing columns to the table
     for column, column_type in required_columns.items():
-        if column not in user_responses_columns:
-            print(f"Adding missing column: {column}")
+        if column not in existing_columns:
+            print(f"Adding column: {column}")
             cursor.execute(f'ALTER TABLE user_responses ADD COLUMN "{column}" {column_type}')
 
-    # Commit changes and close the connection
     conn.commit()
     conn.close()
 
-
 if __name__ == '__main__':
-    print("Checking and updating the database schema...")
-    create_database()  # Create tables if they don't exist
-    add_columns_if_not_exist()  # Add missing columns to existing tables
-    print("Database and tables created/updated successfully.")
+    print("Initializing database schema...")
+    create_database()
+    add_columns_if_not_exist()
+    print("Database setup completed successfully!")

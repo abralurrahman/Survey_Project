@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
-    <!-- Language switcher -->
     <div class="language-switcher">
         <select id="language-switcher">
             <option value="ar">العربية</option>
@@ -25,21 +24,51 @@
     </div>
 
     <div class="choice-container">
-        <p>Not every patient can be treated in a medical emergency. A decision has to be made about which patient to treat and which patient not to treat. Which of the patients shown below should be treated?</p> <br>
-        <div class="patients">
-            {% for image in images %}
-            <div class="patient">
-                <img src="{{ url_for('static', filename=image['filename']) }}"
-                     alt="Patient {{ loop.index }}" 
-                     onclick="submitChoice('{{ image['filename'] }}')"
-                     style="cursor:pointer;">
-                <div class="hover-text">{{ image['description'] }}</div>
+        <h2>Choice Set {{ current_set }} of 3</h2>
+        <div class="instruction-text">
+            <p>Not every patient can be treated in a medical emergency. A decision has to be made about which patient to treat. Which of the patients shown below should be treated?</p>
+        </div>
+        
+        <div class="patients-grid">
+            <!-- First Patient -->
+            <div class="patient-card">
+                <div class="patient-label">1st Patient</div>
+                <div class="image-container">
+                    <img src="{{ url_for('static', filename=images[0]['filename']) }}"
+                         alt="{{ images[0]['description'] }}"
+                         class="patient-image"
+                         data-filename="{{ images[0]['filename'] }}">
+                    <div class="hover-description">{{ images[0]['description'] }}</div>
+                </div>
             </div>
-            {% endfor %}
+
+            <!-- Doctor Section -->
+            <div class="doctor-section">
+                <img src="{{ url_for('static', filename='images/doctor_image.jpg') }}"
+                     alt="Physician"
+                     class="doctor-image"
+                     draggable="true"
+                     id="draggableDoctor">
+            </div>
+
+
+
+            <!-- Second Patient -->
+            <div class="patient-card">
+                <div class="patient-label">2nd Patient</div>
+                <div class="image-container">
+                    <img src="{{ url_for('static', filename=images[1]['filename']) }}"
+                         alt="{{ images[1]['description'] }}"
+                         class="patient-image"
+                         data-filename="{{ images[0]['filename'] }}">
+                    <div class="hover-description">{{ images[1]['description'] }}</div>
+                </div>
+            </div>
         </div>
     </div>
 
-    <form id="choice-form" method="POST" action="/choice-experiment">
+    <!-- Hidden form for submission -->
+    <form id="choice-form" method="POST" action="{{ url_for('choice_experiment') }}">
         <input type="hidden" name="selected_image" id="selected-image">
     </form>
 
